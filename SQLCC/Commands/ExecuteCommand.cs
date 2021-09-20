@@ -32,6 +32,11 @@ namespace SQLCC.Commands
             Console.WriteLine(cmdUtility.StandardOutput.ReadToEnd());
 
             cmdUtility.WaitForExit();
+
+            if (cmdUtility.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"Command '{_target}' finished with exit code '{cmdUtility.ExitCode}'");
+            }
         }
     }
 }

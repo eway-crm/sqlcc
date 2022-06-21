@@ -30,7 +30,7 @@ declare @@TraceID int
 declare @@maxfilesize bigint
 declare @@DateTime datetime
 set @@DateTime = DateAdd(hour, 12, GetDate()) -- auto trace stop
-set @@maxfilesize = 1000
+set @@maxfilesize = 2000
 exec @@rc = sp_trace_create @@TraceID output, 0, N'" +
                trace +
                @"', @@maxfilesize, @@Datetime

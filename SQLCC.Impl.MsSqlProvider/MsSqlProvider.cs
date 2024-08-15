@@ -15,7 +15,7 @@ namespace SQLCC.Impl.MsSqlProvider
 
       public MsSqlProvider(string databaseConnectionString, string databaseTraceDirectory, string databaseApplicationName)
       {
-          _db = new PetaPoco.Database(databaseConnectionString, "System.Data.SqlClient");
+          _db = new PetaPoco.Database(databaseConnectionString, "System.Data.SqlClient") { CommandTimeout = 120 };
           _applicationName = databaseApplicationName;
          _traceDir = databaseTraceDirectory;
       }

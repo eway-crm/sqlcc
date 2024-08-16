@@ -10,84 +10,91 @@ using SQLCC.Commands;
 
 namespace SQLCC
 {
-   class Program
-   {
-      static void Main(string[] args)
-      {
-         var arguments = ParseCommandLine(args);
-         RequiredAttributes(arguments, 
-             "databaseProvider", 
-             "codeFormatProvider", 
-             "codeHighlightProvider", 
-             "outputProvider", 
-             "action"
-             );
-
-         var loader = new AssemblyLoader();
-         var dbProvider = loader.CreateTypeFromAssembly<DbProvider>(arguments["databaseProvider"], arguments);
-         var dbCodeFormatter = loader.CreateTypeFromAssembly<DbTraceCodeFormatter>(arguments["codeFormatProvider"], arguments);
-         var codeHighlighter = loader.CreateTypeFromAssembly<HighlightCodeProvider>(arguments["codeHighlightProvider"], arguments);
-         var outputProvider = loader.CreateTypeFromAssembly<OutputProvider>(arguments["outputProvider"], arguments);
-
-         var command = arguments["action"].ToLower().Trim();
-
-          var traceName = arguments.ContainsKey("traceFileName") ? arguments["traceFileName"] : null;
-         switch (command)
-         {
-            case "generate":
-
-                 RequiredAttributes(arguments,
-                 "traceFileName"
-                );
-               
-               var generateCommand = new GenerateOutputCommand(dbProvider, dbCodeFormatter, codeHighlighter, outputProvider, traceName);
-               generateCommand.Execute();
-               break;
-
-            case "execute":
-                
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                var arguments = ParseCommandLine(args);
                 RequiredAttributes(arguments,
-                 "target"
-                );
-                 
-               traceName = traceName ?? DateTime.Now.ToString("yyyyMMddHHmmss");
-               var startCommand = new StartCommand(outputProvider, dbProvider, traceName);
-               startCommand.Execute();
+                    "databaseProvider",
+                    "codeFormatProvider",
+                    "codeHighlightProvider",
+                    "outputProvider",
+                    "action"
+                    );
 
-                 var executeCommand = new ExecuteCommand(arguments["target"], arguments.ContainsKey("targetArgs") ? arguments["targetArgs"] : string.Empty);
-                 executeCommand.Execute();
-                                
-                 var stopCommand = new StopCommand(dbProvider, outputProvider, traceName);
-                 stopCommand.Execute();
+                var loader = new AssemblyLoader();
+                var dbProvider = loader.CreateTypeFromAssembly<DbProvider>(arguments["databaseProvider"], arguments);
+                var dbCodeFormatter = loader.CreateTypeFromAssembly<DbTraceCodeFormatter>(arguments["codeFormatProvider"], arguments);
+                var codeHighlighter = loader.CreateTypeFromAssembly<HighlightCodeProvider>(arguments["codeHighlightProvider"], arguments);
+                var outputProvider = loader.CreateTypeFromAssembly<OutputProvider>(arguments["outputProvider"], arguments);
 
-               break;
-         }
+                var command = arguments["action"].ToLower().Trim();
 
-      }
+                var traceName = arguments.ContainsKey("traceFileName") ? arguments["traceFileName"] : null;
+                switch (command)
+                {
+                    case "generate":
 
-       public static void RequiredAttributes(Dictionary<string, string> args, params string[] requiredArgs)
-       {
-           foreach (var arg in requiredArgs)
-           {
-               if (!args.ContainsKey(arg))
-                   throw new ApplicationException("Required argument " + arg + " not found!");
-           }
-       }
+                        RequiredAttributes(arguments,
+                        "traceFileName"
+                       );
 
-      public static Dictionary<string, string> ParseCommandLine(string[] args)
-      {
-          var arguments = new Dictionary<string, string>();
+                        var generateCommand = new GenerateOutputCommand(dbProvider, dbCodeFormatter, codeHighlighter, outputProvider, traceName);
+                        generateCommand.Execute();
+                        break;
 
-          // App.Config Settings
-          var appSettingKeys = ConfigurationManager.AppSettings.Keys;
-          for (var i = 0; i < appSettingKeys.Count; i++)
-          {
-              var key = appSettingKeys[i];
-              arguments.AddOrUpdate(key, ConfigurationManager.AppSettings[key]);
-          }
+                    case "execute":
 
-          // Manual override through CLI.
-          var p = new OptionSet()
+                        RequiredAttributes(arguments,
+                         "target"
+                        );
+
+                        traceName = traceName ?? DateTime.Now.ToString("yyyyMMddHHmmss");
+                        var startCommand = new StartCommand(outputProvider, dbProvider, traceName);
+                        startCommand.Execute();
+
+                        var executeCommand = new ExecuteCommand(arguments["target"], arguments.ContainsKey("targetArgs") ? arguments["targetArgs"] : string.Empty);
+                        executeCommand.Execute();
+
+                        var stopCommand = new StopCommand(dbProvider, outputProvider, traceName);
+                        stopCommand.Execute();
+
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Environment.Exit(1);
+            }
+        }
+
+        public static void RequiredAttributes(Dictionary<string, string> args, params string[] requiredArgs)
+        {
+            foreach (var arg in requiredArgs)
+            {
+                if (!args.ContainsKey(arg))
+                    throw new ApplicationException("Required argument " + arg + " not found!");
+            }
+        }
+
+        public static Dictionary<string, string> ParseCommandLine(string[] args)
+        {
+            var arguments = new Dictionary<string, string>();
+
+            // App.Config Settings
+            var appSettingKeys = ConfigurationManager.AppSettings.Keys;
+            for (var i = 0; i < appSettingKeys.Count; i++)
+            {
+                var key = appSettingKeys[i];
+                arguments.AddOrUpdate(key, ConfigurationManager.AppSettings[key]);
+            }
+
+            // Manual override through CLI.
+            var p = new OptionSet()
                     {
                        {
                           "<>", v =>
@@ -102,11 +109,8 @@ namespace SQLCC
                           }
                     };
 
-          p.Parse(args);
-          return arguments;
-      }
-
-   }
-
-
+            p.Parse(args);
+            return arguments;
+        }
+    }
 }

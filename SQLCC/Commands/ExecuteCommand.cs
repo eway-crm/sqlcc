@@ -23,14 +23,10 @@ namespace SQLCC.Commands
                 {
                     FileName = _target,
                     Arguments = _targetArgs,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true
+                    UseShellExecute = false
                 }
             };
             cmdUtility.Start();
-
-            Console.WriteLine(cmdUtility.StandardOutput.ReadToEnd());
-
             cmdUtility.WaitForExit();
 
             if (cmdUtility.ExitCode != 0)
